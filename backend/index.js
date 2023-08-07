@@ -1,9 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const pg = require('pg');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const pg = require("pg");
+require("dotenv").config();
+const bcrypt = require("bcrypt");
+
 const app = express();
-const pool = require('./DB/db.js');
+const pool = require("./DB/db.js");
 
 // Middleware
 app.use(cors());
@@ -13,84 +15,215 @@ app.use(express.json());
 
 // Create a user
 app.post("/users", async (req, res) => {
-    try {
-        // console.log(req.body);
-        const { name, email, password, phone } = req.body;
-        const newUser = await pool.query("INSERT INTO users (name, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING *", [name, email, password, phone]);
-        res.json(newUser);
+  try {
+    // console.log(req.body);
+    const { name, email, password, phone } = req.body;
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
 
-    } catch (error) {
-        console.error("Error : ",error.message );
-    }
-})
+    // Hash the password using the salt
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const newUser = await pool.query(
+      "INSERT INTO users (name, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, email, hashedPassword, phone]
+    );
+    res.json(newUser.rows[0]);
+  } catch (error) {
+    console.error("Error : ", error.message);
+  }
+});
 
 // Get all users
 app.get("/users", async (req, res) => {
-    try {
-        const allUsers = await pool.query("SELECT * FROM users");
-        res.json(allUsers.rows);
-    } catch (error) {
-        console.error("Error : ",error.message );
-    }
-})
+  try {
+    const allUsers = await pool.query("SELECT * FROM users");
+    res.json(allUsers.rows);
+  } catch (error) {
+    console.error("Error : ", error.message);
+  }
+});
 
 // Get a user
 app.get("/user", async (req, res) => {
-    try {
-        const { name } = req.body;
-        const user = await pool.query("SELECT * FROM users WHERE name = $1", [name]);
-        if (user.rows.length === 0) {
-            return res.json("No User Found 😢");
-        }else{
-            res.json(user.rows[0]);
-        }
-
-    } catch (error) {
-        res.json(error.message );
+  try {
+    const { name } = req.body;
+    const user = await pool.query("SELECT * FROM users WHERE name = $1", [
+      name,
+    ]);
+    if (user.rows.length === 0) {
+      return res.json("No User Found 😢");
+    } else {
+      res.json(user.rows[0]);
     }
-})
+  } catch (error) {
+    res.json(error.message);
+  }
+});
 
 // Update a user
 app.put("/user/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [id]);
-        let { name, email, password, phone } = user.rows[0]
-        if(req.body.name){
-            name = req.body.name;
-        }
-        if(req.body.email){
-            email = req.body.email;
-        }
-        if(req.body.password){
-            password = req.body.password;
-        }
-        if(req.body.phone){
-            phone = req.body.phone;
-        }
-        // const { name, email, password, phone } = req.body;
-
-        const updateUser = await pool.query("UPDATE users SET user_id= $1, name = $2, email = $3, password = $4, phone = $5 WHERE user_id = $1", [id, name, email, password, phone]);
-        res.json("User was updated successfully");
-    } catch (error) {
-        res.json(error.message);
+  try {
+    const { id } = req.params;
+    const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
+      id,
+    ]);
+    let { name, email, password, phone, admin } = user.rows[0];
+    if (req.body.name) {
+      name = req.body.name;
     }
-})
+    if (req.body.email) {
+      email = req.body.email;
+    }
+    if (req.body.password) {
+      password = req.body.password;
+    }
+    if (req.body.phone) {
+      phone = req.body.phone;
+    }
+    if (req.body.admin) {
+      admin = req.body.admin;
+    }
+    // const { name, email, password, phone } = req.body;
+
+    const updateUser = await pool.query(
+      "UPDATE users SET user_id= $1, name = $2, email = $3, password = $4, phone = $5, admin = $6 WHERE user_id = $1",
+      [id, name, email, password, phone, admin]
+    );
+    res.json("User was updated successfully");
+  } catch (error) {
+    res.json(error.message);
+  }
+});
 
 // Delete a user
 app.delete("/user/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deleteUser = await pool.query("DELETE FROM users WHERE user_id = $1", [id]);
-        res.json("User was deleted successfully");
-    } catch (error) {
-        res.json(error.message);
+  try {
+    const { id } = req.params;
+    const deleteUser = await pool.query(
+      "DELETE FROM users WHERE user_id = $1",
+      [id]
+    );
+    res.json("User was deleted successfully");
+  } catch (error) {
+    res.json(error.message);
+  }
+});
+
+// Get items created by a specific user route
+app.get("/users/:user_id/items", async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    // Check if the user exists based on user_id
+    const existingUser = await client.query(
+      'SELECT * FROM "User" WHERE user_id = $1',
+      [user_id]
+    );
+    if (existingUser.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ error: "User not found" });
     }
-})
 
+    // Retrieve all items created by the specific user
+    const userItems = await client.query(
+      'SELECT * FROM "Item" WHERE user_id = $1',
+      [user_id]
+    );
 
+    client.release();
+
+    res.status(200).json(userItems.rows);
+  } catch (err) {
+    console.error("Error executing get user items:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get the owner of a specific item route
+app.get("/items/:item_id/owner", async (req, res) => {
+  const { item_id } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    // Retrieve the item from the database based on item_id
+    const item = await client.query('SELECT * FROM "Item" WHERE item_id = $1', [
+      item_id,
+    ]);
+    if (item.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    const user_id = item.rows[0].user_id;
+
+    // Retrieve the owner of the item from the database based on user_id
+    const owner = await client.query(
+      'SELECT * FROM "User" WHERE user_id = $1',
+      [user_id]
+    );
+
+    client.release();
+
+    res.status(200).json(owner.rows[0]);
+  } catch (err) {
+    console.error("Error executing get item owner:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Get all items route
+app.get("/items", async (req, res) => {
+  try {
+    const client = await pool.connect();
+
+    // Retrieve all items from the database
+    const allItems = await client.query("SELECT * FROM Item");
+
+    client.release();
+
+    res.status(200).json(allItems.rows);
+  } catch (err) {
+    console.error("Error executing get all items:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Add new item route
+app.post("/items", async (req, res) => {
+  let { user_id, name, description, imageUrl, price, categories } = req.body;
+  user_id = 1;
+  try {
+    const client = await pool.connect();
+
+    // Check if the user exists based on user_id
+    const existingUser = await client.query(
+      "SELECT * FROM users WHERE user_id = $1",
+      [user_id]
+    );
+    if (existingUser.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Insert the new item into the database
+    const newItem = await client.query(
+      "INSERT INTO Item (user_id, name, description, image_url, price, categories) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [user_id, name, description, imageUrl, price, categories]
+    );
+
+    client.release();
+
+    res.status(201).json(newItem.rows[0]);
+  } catch (err) {
+    console.error("Error executing add new item:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}.`);
-})
+  console.log(`Server is running on port ${port}.`);
+});
