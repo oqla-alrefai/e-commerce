@@ -4,5 +4,6 @@ CREATE TABLE Item (
   name VARCHAR(100) NOT NULL,
   description TEXT,
   image_url VARCHAR(255) DEFAULT NULL,
-  price NUMERIC(10, 2) NOT NULL
+  price NUMERIC(10, 2) NOT NULL,
+  categories 
 );

@@ -18,7 +18,7 @@ app.get("/",(req, res) =>{
     res.json("hello world")
 })
 
-// Create a user
+// Create a user signup
 app.post("/users", async (req, res) => {
   try {
     // console.log(req.body);
