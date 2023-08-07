@@ -13,6 +13,11 @@ app.use(express.json());
 
 // Routes
 
+//
+app.get("/",(req, res) =>{
+    res.json("hello world")
+})
+
 // Create a user
 app.post("/users", async (req, res) => {
   try {
