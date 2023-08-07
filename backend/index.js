@@ -29,8 +29,8 @@ app.post("/users", async (req, res) => {
     // Hash the password using the salt
     const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = await pool.query(
-      "INSERT INTO users (full_name, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, email, hashedPassword, phone]
+      "INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING *",
+      [name, email, hashedPassword]
     );
     res.json(newUser.rows[0]);
   } catch (error) {
