@@ -3,7 +3,7 @@ const cors = require("cors");
 const pg = require("pg");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken")
 const app = express();
 const pool = require("./DB/db.js");
 
@@ -11,12 +11,13 @@ const pool = require("./DB/db.js");
 app.use(cors());
 app.use(express.json());
 
+const jwtSecret = 'your_jwt_secret_key';
+
 // Routes
 
-//
-app.get("/",(req, res) =>{
-    res.json("hello world")
-})
+app.get("/", (req, res) => {
+  res.json("hello world");
+});
 
 // Create a user signup
 app.post("/users", async (req, res) => {
@@ -35,6 +36,35 @@ app.post("/users", async (req, res) => {
     res.json(newUser.rows[0]);
   } catch (error) {
     console.error("Error : ", error.message);
+  }
+});
+
+// Sign-in route
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const client = await pool.connect();
+    // Query the database to find the user by email
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    const user = result.rows[0];
+    client.release();
+    // If user not found or password does not match, return an error response
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+    // Generate a JWT token with the user ID as payload
+    const token = jwt.sign({ user_id: user.user_id }, jwtSecret, {
+      expiresIn: "1h",
+    });
+
+    // Return the token in the response
+    res.status(200).json({ message: "Login successful", token });
+  } catch (err) {
+    console.error("Error executing login:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -228,7 +258,7 @@ app.post("/items", async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}.`);
 });
