@@ -3,7 +3,7 @@ const cors = require("cors");
 const pg = require("pg");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const app = express();
 const pool = require("./DB/db.js");
 
@@ -11,7 +11,7 @@ const pool = require("./DB/db.js");
 app.use(cors());
 app.use(express.json());
 
-const jwtSecret = 'your_jwt_secret_key';
+const jwtSecret = "your_jwt_secret_key";
 
 // Routes
 
@@ -102,7 +102,7 @@ app.put("/user/:id", async (req, res) => {
     const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
       id,
     ]);
-    let { name, email, password, phone, admin } = user.rows[0];
+    let { name, email, password, image_url, favorite, admin } = user.rows[0];
     if (req.body.name) {
       name = req.body.name;
     }
@@ -112,17 +112,21 @@ app.put("/user/:id", async (req, res) => {
     if (req.body.password) {
       password = req.body.password;
     }
-    if (req.body.phone) {
-      phone = req.body.phone;
+    if (req.body.image_url) {
+      image_url = req.body.image_url;
     }
+    if (req.body.favorite) {
+      favorite = req.body.favorite;
+    }
+    
+
     if (req.body.admin) {
       admin = req.body.admin;
     }
-    // const { name, email, password, phone } = req.body;
 
     const updateUser = await pool.query(
-      "UPDATE users SET user_id= $1, name = $2, email = $3, password = $4, phone = $5, admin = $6 WHERE user_id = $1",
-      [id, name, email, password, phone, admin]
+      "UPDATE users SET user_id= $1,  email = $2, password = $3, full_name = $4, image_url = $5, admin = $6 WHERE user_id = $1",
+      [id, email, password, name, image_url, admin]
     );
     res.json("User was updated successfully");
   } catch (error) {
