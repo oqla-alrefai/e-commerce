@@ -78,12 +78,29 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// Get a user
+// Get a user by email
 app.get("/user", async (req, res) => {
   try {
     const { email } = req.body;
     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
+    ]);
+    if (user.rows.length === 0) {
+      return res.json("No User Found 😢");
+    } else {
+      res.json(user.rows[0]);
+    }
+  } catch (error) {
+    res.json(error.message);
+  }
+});
+
+// get user by id
+app.get("/user", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
+      user_id,
     ]);
     if (user.rows.length === 0) {
       return res.json("No User Found 😢");
