@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 app.post("/users", async (req, res) => {
   try {
     // console.log(req.body);
-    const { name, email, password, phone } = req.body;
+    const { full_name, email, password } = req.body;
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
 
@@ -31,7 +31,7 @@ app.post("/users", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = await pool.query(
       "INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING *",
-      [name, email, hashedPassword]
+      [full_name, email, hashedPassword]
     );
     res.json(newUser.rows[0]);
   } catch (error) {
@@ -119,9 +119,9 @@ app.put("/user/:id", async (req, res) => {
     const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
       id,
     ]);
-    let { name, email, password, image_url, favorite, admin } = user.rows[0];
-    if (req.body.name) {
-      name = req.body.name;
+    let { full_name, email, password, image_url, favorite, admin } = user.rows[0];
+    if (req.body.full_name) {
+      full_name = req.body.full_name;
     }
     if (req.body.email) {
       email = req.body.email;
