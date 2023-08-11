@@ -143,7 +143,7 @@ app.put("/user/:id", async (req, res) => {
 
     const updateUser = await pool.query(
       "UPDATE users SET user_id= $1,  email = $2, password = $3, full_name = $4, image_url = $5, favorite=$6, admin = $7 WHERE user_id = $1",
-      [id, email, password, name, image_url,favorite, admin]
+      [id, email, password, full_name, image_url,favorite, admin]
     );
     res.json("User was updated successfully");
   } catch (error) {
