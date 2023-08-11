@@ -78,12 +78,12 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// Get a user by email
+// Get a user by email or id
 app.get("/user", async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
+    const { email, user_id } = req.body;
+    const user = await pool.query("SELECT * FROM users WHERE email = $1 OR user_id = $2", [
+      email,user_id
     ]);
     if (user.rows.length === 0) {
       return res.json("No User Found 😢");
