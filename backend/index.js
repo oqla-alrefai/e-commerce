@@ -233,7 +233,7 @@ app.get("/items", async (req, res) => {
 // Add new item route
 app.post("/items", async (req, res) => {
   let { user_id, name, description, imageUrl, price, categories } = req.body;
-  user_id = 1;
+  user_id = 19;
   try {
     const client = await pool.connect();
 
