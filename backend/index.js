@@ -95,7 +95,7 @@ app.get("/user", async (req, res) => {
   }
 });
 
-// // get user by id
+// get user by id
 // app.get("/user", async (req, res) => {
 //   try {
 //     const { user_id } = req.body;
