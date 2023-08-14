@@ -81,7 +81,7 @@ app.get("/users", async (req, res) => {
 // Get a user by email or id
 app.get("/user", async (req, res) => {
   try {
-    const { email, user_id } = req.body;
+    const { email, user_id } = req.params;
     const user = await pool.query("SELECT * FROM users WHERE email = $1 OR user_id = $2", [
       email,user_id
     ]);
