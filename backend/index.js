@@ -95,7 +95,7 @@ app.get("/user/:user_id", async (req, res) => {
   }
 });
 // Get a user by email
-app.get("/user/:email", async (req, res) => {
+app.get("/userbyemail/:email", async (req, res) => {
   try {
     const { email } = req.params;
     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
