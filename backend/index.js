@@ -113,6 +113,38 @@ app.get("/userbyemail/:email", async (req, res) => {
 });
 
 
+
+
+// Route to get a user by email
+app.get('/userbyemail/:email', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    // Query the database to find the user by email
+    const result = await client.query('SELECT * FROM "User" WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    client.release();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error('Error retrieving user:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+
+
+
+
 // Update a user
 app.put("/user/:id", async (req, res) => {
   try {
