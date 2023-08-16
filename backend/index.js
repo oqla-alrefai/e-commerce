@@ -50,6 +50,7 @@ app.post("/login", async (req, res) => {
       email,
     ]);
     const user = result.rows[0];
+    const isAdmin = users.admin
     client.release();
     // If user not found or password does not match, return an error response
     if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -61,7 +62,7 @@ app.post("/login", async (req, res) => {
     });
 
     // Return the token in the response
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json({ message: "Login successful", token, isAdmin });
   } catch (err) {
     console.error("Error executing login:", err);
     res.status(500).json({ error: "Internal server error" });
