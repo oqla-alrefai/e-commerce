@@ -62,7 +62,7 @@ app.post("/login", async (req, res) => {
     });
 
     // Return the token in the response
-    res.status(200).json({ message: "Login successful", token, isAdmin });
+    res.status(200).json({ message: "Login successful", token, "isAdmin":isAdmin });
   } catch (err) {
     console.error("Error executing login:", err);
     res.status(500).json({ error: "Internal server error" });
