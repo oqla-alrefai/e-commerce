@@ -50,7 +50,7 @@ app.post("/login", async (req, res) => {
       email,
     ]);
     const user = result.rows[0];
-    const isAdmin = users.admin
+    const isAdmin = user.admin
     client.release();
     // If user not found or password does not match, return an error response
     if (!user || !bcrypt.compareSync(password, user.password)) {
