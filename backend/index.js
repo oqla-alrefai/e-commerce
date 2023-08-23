@@ -384,11 +384,12 @@ app.put('/items/:id', async (req, res) => {
       client.release();
       return res.status(404).json({ error: 'Item not found' });
     }
+    console.log("=> 1");
 
     // Update the item in the database
     const updateResult = await client.query(
-      'UPDATE Item SET name = $1, description = $2, image_url = $3, price = $4, categories = $5, WHERE item_id = $6',
-      [name, description, image_url, price, categories, id]
+      'UPDATE Item SET item_id=$1, name = $2, description = $3, image_url = $4, price = $5, categories = $6, WHERE item_id = $1',
+      [id, name, description, image_url, price, categories]
     );
 
     client.release();
