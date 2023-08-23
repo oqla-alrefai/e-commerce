@@ -340,6 +340,33 @@ app.get('/items/:id', async (req, res) => {
 });
 
 
+// Route to delete an item by ID
+app.delete('/items/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    // Check if the item exists
+    const checkResult = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
+    const item = checkResult.rows[0];
+
+    if (!item) {
+      client.release();
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Delete the item from the database
+    await client.query('DELETE FROM Item WHERE item_id = $1', [id]);
+    client.release();
+
+    res.status(200).json({ message: 'Item deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting item:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
