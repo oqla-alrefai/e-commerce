@@ -323,7 +323,7 @@ app.get('/items/:id', async (req, res) => {
     const client = await pool.connect();
 
     // Query the database to retrieve the item by its ID
-    const result = await client.query('SELECT * FROM Item WHERE id = $1', [id]);
+    const result = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
     const item = result.rows[0];
 
     client.release();
