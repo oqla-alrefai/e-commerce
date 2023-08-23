@@ -95,6 +95,7 @@ app.get("/user/:user_id", async (req, res) => {
     res.json(error.message);
   }
 });
+
 // Get a user by email
 app.get("/userbyemail/:email", async (req, res) => {
   try {
@@ -311,6 +312,34 @@ app.post("/items", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+
+// Route to get an item by ID
+app.get('/items/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    // Query the database to retrieve the item by its ID
+    const result = await client.query('SELECT * FROM Item WHERE id = $1', [id]);
+    const item = result.rows[0];
+
+    client.release();
+
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    res.status(200).json(item);
+  } catch (err) {
+    console.error('Error retrieving item:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
