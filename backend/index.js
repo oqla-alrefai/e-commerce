@@ -368,6 +368,43 @@ app.delete('/items/:id', async (req, res) => {
 });
 
 
+// Route to update an item by ID
+app.put('/items/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, image_url, price, categories } = req.body;
+
+  try {
+    const client = await pool.connect();
+
+    // Check if the item exists
+    const checkResult = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
+    const item = checkResult.rows[0];
+
+    if (!item) {
+      client.release();
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Update the item in the database
+    const updateResult = await client.query(
+      'UPDATE Item SET name = $1, description = $2, image_url = $3, price = $4 categories = $5 WHERE item_id = $6',
+      [name, description, image_url, price, categories, id]
+    );
+
+    client.release();
+
+    if (updateResult.rowCount > 0) {
+      res.status(200).json({ message: 'Item updated successfully' });
+    } else {
+      res.status(500).json({ error: 'Failed to update item' });
+    }
+  } catch (err) {
+    console.error('Error updating item:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}.`);
