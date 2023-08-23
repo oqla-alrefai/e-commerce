@@ -387,7 +387,7 @@ app.put('/items/:id', async (req, res) => {
 
     // Update the item in the database
     const updateResult = await client.query(
-      'UPDATE Item SET name = $1, description = $2, image_url = $3, price = $4 categories = $5 WHERE item_id = $6',
+      'UPDATE Item SET name = $1, description = $2, image_url = $3, price = $4, categories = $5, WHERE item_id = $6',
       [name, description, image_url, price, categories, id]
     );
 
