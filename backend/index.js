@@ -387,18 +387,18 @@ app.put('/items/:id', async (req, res) => {
     // return res.status(200).json({message: "done"})
     // Update the item in the database
     const updateResult = await client.query(
-      'UPDATE Item SET item_id=$1, name = $2, description = $3, image_url = $4, price = $5, categories = $6, WHERE item_id = $1',
+      'UPDATE Item SET item_id=$1, name = $2, description = $3, image_url = $4, price = $5, categories = $6 WHERE item_id = $1',
       [id, name, description, image_url, price, categories]
-    );
+      );
 
     client.release();
 
     if (updateResult.rowCount > 0) {
       res.status(200).json({ message: 'Item updated successfully' });
     } 
-    // else {
-  //     res.status(500).json({ error: 'Failed to update item' });
-  //   }
+    else {
+      res.status(500).json({ error: 'Failed to update item' });
+    }
   } catch (err) {
     console.error('Error updating item:', err);
     res.status(500).json({ error: 'Internal server error' , name, description, image_url, price, categories });
