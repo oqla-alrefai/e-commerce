@@ -401,7 +401,7 @@ app.put('/items/:id', async (req, res) => {
   //   }
   } catch (err) {
     console.error('Error updating item:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' , name, description, image_url, price, categories });
   }
 });
 
