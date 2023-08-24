@@ -375,7 +375,7 @@ app.get('/items/search', async (req, res) => {
     const client = await pool.connect();
 
     // Query the database to search for items by name
-    const result = await client.query('SELECT * FROM Item WHERE name ILIKE $1', [`%${name}%`]);
+    const result = await client.query('SELECT * FROM Item WHERE name ILIKE $1', ["Dress"]);
     const items = result.rows;
 
     client.release();
