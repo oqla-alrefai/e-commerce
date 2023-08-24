@@ -50,7 +50,7 @@ app.post("/login", async (req, res) => {
       email,
     ]);
     const user = result.rows[0];
-    const isAdmin = user.admin
+    const isAdmin = user.admin;
     client.release();
     // If user not found or password does not match, return an error response
     if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -62,7 +62,9 @@ app.post("/login", async (req, res) => {
     });
 
     // Return the token in the response
-    res.status(200).json({ message: "Login successful", token, isAdmin:isAdmin });
+    res
+      .status(200)
+      .json({ message: "Login successful", token, isAdmin: isAdmin });
   } catch (err) {
     console.error("Error executing login:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -84,7 +86,7 @@ app.get("/user/:user_id", async (req, res) => {
   try {
     const { user_id } = req.params;
     const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
-      user_id
+      user_id,
     ]);
     if (user.rows.length === 0) {
       return res.json("No User Found 😢");
@@ -101,7 +103,7 @@ app.get("/userbyemail/:email", async (req, res) => {
   try {
     const { email } = req.params;
     const user = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email
+      email,
     ]);
     if (user.rows.length === 0) {
       return res.json("No User Found 😢");
@@ -113,38 +115,31 @@ app.get("/userbyemail/:email", async (req, res) => {
   }
 });
 
-
-
-
 // Route to get a user by email
-app.get('/userbyemail/:email', async (req, res) => {
+app.get("/userbyemail/:email", async (req, res) => {
   const { email } = req.params;
 
   try {
     const client = await pool.connect();
 
     // Query the database to find the user by email
-    const result = await client.query('SELECT * FROM "User" WHERE email = $1', [email]);
+    const result = await client.query('SELECT * FROM "User" WHERE email = $1', [
+      email,
+    ]);
     const user = result.rows[0];
 
     client.release();
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.status(200).json(user);
   } catch (err) {
-    console.error('Error retrieving user:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error retrieving user:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
-
-
-
 
 // Update a user
 app.put("/user/:id", async (req, res) => {
@@ -153,7 +148,8 @@ app.put("/user/:id", async (req, res) => {
     const user = await pool.query("SELECT * FROM users WHERE user_id = $1", [
       id,
     ]);
-    let { full_name, email, password, image_url, favorite, admin } = user.rows[0];
+    let { full_name, email, password, image_url, favorite, admin } =
+      user.rows[0];
     if (req.body.full_name) {
       full_name = req.body.full_name;
     }
@@ -169,7 +165,6 @@ app.put("/user/:id", async (req, res) => {
     if (req.body.favorite) {
       favorite = req.body.favorite;
     }
-    
 
     if (req.body.admin) {
       admin = req.body.admin;
@@ -177,7 +172,7 @@ app.put("/user/:id", async (req, res) => {
 
     const updateUser = await pool.query(
       "UPDATE users SET user_id= $1,  email = $2, password = $3, full_name = $4, image_url = $5, favorite=$6, admin = $7 WHERE user_id = $1",
-      [id, email, password, full_name, image_url,favorite, admin]
+      [id, email, password, full_name, image_url, favorite, admin]
     );
     res.json("User was updated successfully");
   } catch (error) {
@@ -313,88 +308,92 @@ app.post("/items", async (req, res) => {
   }
 });
 
-
-
 // Route to get an item by ID
-app.get('/items/:id', async (req, res) => {
+app.get("/items/:id", async (req, res) => {
   const { id } = req.params;
-
+  const parsed = parseInt(id, 10);
   try {
     const client = await pool.connect();
 
     // Query the database to retrieve the item by its ID
-    const result = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
+    const result = await client.query("SELECT * FROM Item WHERE item_id = $1", [
+      parsed,
+    ]);
     const item = result.rows[0];
 
     client.release();
 
     if (!item) {
-      return res.status(404).json({ error: 'Item not found' });
+      return res.status(404).json({ error: "Item not found" });
     }
 
     res.status(200).json(item);
   } catch (err) {
-    console.error('Error retrieving item:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error retrieving item:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
 // Route to delete an item by ID
-app.delete('/items/:id', async (req, res) => {
+app.delete("/items/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
     const client = await pool.connect();
 
     // Check if the item exists
-    const checkResult = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
+    const checkResult = await client.query(
+      "SELECT * FROM Item WHERE item_id = $1",
+      [id]
+    );
     const item = checkResult.rows[0];
 
     if (!item) {
       client.release();
-      return res.status(404).json({ error: 'Item not found' });
+      return res.status(404).json({ error: "Item not found" });
     }
 
     // Delete the item from the database
-    await client.query('DELETE FROM Item WHERE item_id = $1', [id]);
+    await client.query("DELETE FROM Item WHERE item_id = $1", [id]);
     client.release();
 
-    res.status(200).json({ message: 'Item deleted successfully' });
+    res.status(200).json({ message: "Item deleted successfully" });
   } catch (err) {
-    console.error('Error deleting item:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error deleting item:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Route to search for items by name
-app.get('/items/search', async (req, res) => {
+app.get("/items/search/item", async (req, res) => {
   const { name } = req.query;
+  console.log(req.query);
 
   try {
     const client = await pool.connect();
 
     // Query the database to search for items by name
-    const result = await client.query('SELECT * FROM Item WHERE name ILIKE $1', ["Dress"]);
+    const result = await client.query(
+      "SELECT * FROM Item WHERE name ILIKE $1",
+      [`%${name}%`]
+    );
     const items = result.rows;
 
     client.release();
 
     if (items.length === 0) {
-      return res.status(404).json({ message: 'No matching items found' });
+      return res.status(404).json({ message: "No matching items found" });
     }
 
     res.status(200).json(items);
   } catch (err) {
-    console.error('Error searching for items:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error searching for items:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
-
 // Route to update an item by ID
-app.put('/items/:id', async (req, res) => {
+app.put("/items/:id", async (req, res) => {
   const { id } = req.params;
   const { name, description, image_url, price, categories } = req.body;
 
@@ -402,34 +401,42 @@ app.put('/items/:id', async (req, res) => {
     const client = await pool.connect();
 
     // Check if the item exists
-    const checkResult = await client.query('SELECT * FROM Item WHERE item_id = $1', [id]);
+    const checkResult = await client.query(
+      "SELECT * FROM Item WHERE item_id = $1",
+      [id]
+    );
     const item = checkResult.rows[0];
 
     if (!item) {
       client.release();
-      return res.status(404).json({ error: 'Item not found' });
+      return res.status(404).json({ error: "Item not found" });
     }
     // return res.status(200).json({message: "done"})
     // Update the item in the database
     const updateResult = await client.query(
-      'UPDATE Item SET item_id=$1, name = $2, description = $3, image_url = $4, price = $5, categories = $6 WHERE item_id = $1',
+      "UPDATE Item SET item_id=$1, name = $2, description = $3, image_url = $4, price = $5, categories = $6 WHERE item_id = $1",
       [id, name, description, image_url, price, categories]
-      );
+    );
 
     client.release();
 
     if (updateResult.rowCount > 0) {
-      res.status(200).json({ message: 'Item updated successfully' });
-    } 
-    else {
-      res.status(500).json({ error: 'Failed to update item' });
+      res.status(200).json({ message: "Item updated successfully" });
+    } else {
+      res.status(500).json({ error: "Failed to update item" });
     }
   } catch (err) {
-    console.error('Error updating item:', err);
-    res.status(500).json({ error: 'Internal server error' , name, description, image_url, price, categories });
+    console.error("Error updating item:", err);
+    res.status(500).json({
+      error: "Internal server error",
+      name,
+      description,
+      image_url,
+      price,
+      categories,
+    });
   }
 });
-
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
