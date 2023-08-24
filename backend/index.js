@@ -367,6 +367,31 @@ app.delete('/items/:id', async (req, res) => {
   }
 });
 
+// Route to search for items by name
+app.get('/items/search', async (req, res) => {
+  const { name } = req.query;
+
+  try {
+    const client = await pool.connect();
+
+    // Query the database to search for items by name
+    const result = await client.query('SELECT * FROM Item WHERE name ILIKE $1', [`%${name}%`]);
+    const items = result.rows;
+
+    client.release();
+
+    if (items.length === 0) {
+      return res.status(404).json({ message: 'No matching items found' });
+    }
+
+    res.status(200).json(items);
+  } catch (err) {
+    console.error('Error searching for items:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 // Route to update an item by ID
 app.put('/items/:id', async (req, res) => {
