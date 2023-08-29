@@ -278,7 +278,7 @@ app.get("/items", async (req, res) => {
 
 // Add new item route
 app.post("/items", async (req, res) => {
-  let { user_id, name, description, imageUrl, price, categories } = req.body;
+  let { user_id, name, description, image_url, price, categories } = req.body;
   user_id = 48;
   try {
     const client = await pool.connect();
@@ -296,7 +296,7 @@ app.post("/items", async (req, res) => {
     // Insert the new item into the database
     const newItem = await client.query(
       "INSERT INTO Item (user_id, name, description, image_url, price, categories) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [user_id, name, description, imageUrl, price, categories]
+      [user_id, name, description, image_url, price, categories]
     );
 
     client.release();
